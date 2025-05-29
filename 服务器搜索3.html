@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>服务器搜索</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+      <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                primary: '#0EA5E9',      // 科技蓝
+                secondary: '#7C3AED',    // 科技紫
+                accent: '#06B6D4',       // 亮青色
+                dark: '#0F172A',         // 深色背景
+                'dark-gray': '#334155',  // 深灰色
+                'light-gray': '#94A3B8', // 浅灰色
+                success: '#10B981',      // 成功绿
+                warning: '#F59E0B',      // 警告黄
+                danger: '#EF4444',       // 危险红
+                online: '#10B981',       // 在线状态绿
+                offline: '#EF4444',      // 离线状态红
+              },
+              fontFamily: {
+                inter: ['Inter', 'system-ui', 'sans-serif'],
+              },
+              boxShadow: {
+                'card': '0 4px 20px rgba(14, 165, 233, 0.1)',
+                'card-hover': '0 10px 30px rgba(14, 165, 233, 0.2)',
+                'input': '0 2px 8px rgba(14, 165, 233, 0.15)',
+                'glow': '0 0 15px rgba(124, 58, 237, 0.5)',
+              },
+              backgroundImage: {
+                'grid-pattern': "radial-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px)",
+                'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+              }
+            },
+          }
+        }
+      </script>
+      <style type="text/tailwindcss">
+        @layer utilities {
+          .content-auto {
+            content-visibility: auto;
+          }
+          .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          .bg-grid {
+            background-image: radial-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+          }
+          .server-row {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          .server-row:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);
+            background-color: rgba(14, 165, 233, 0.05);
+          }
+          .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+          }
+          @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+          .pulse {
+            animation: pulse 2s infinite;
+          }
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          .glow {
+            box-shadow: 0 0 15px rgba(124, 58, 233, 0.5);
+          }
+          .text-shadow {
+            text-shadow: 0 0 10px rgba(124, 58, 233, 0.3);
+          }
+        }
+      </style>
+    </head>
+    <body class="bg-dark font-inter text-white antialiased bg-grid min-h-screen flex flex-col relative overflow-x-hidden">
+      <!-- 背景装饰 -->
+      <div class="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 to-secondary/5 -z-10"></div>
+      <div class="fixed -top-20 -right-20 w-80 h-80 bg-secondary/20 rounded-full filter blur-3xl -z-10"></div>
+      <div class="fixed -bottom-40 -left-40 w-96 h-96 bg-primary/20 rounded-full filter blur-3xl -z-10"></div>
+
+      <!-- 主内容区 -->
+      <main class="container mx-auto px-4 py-16 max-w-4xl flex-grow flex flex-col justify-center relative z-10">
+        <!-- 搜索区 -->
+        <section class="mb-10">
+          <div class="bg-dark-gray/50 backdrop-blur-lg rounded-2xl border border-primary/20 shadow-card p-6 md:p-8 transition-all duration-300 hover:shadow-card-hover hover:border-primary/30">
+            <h2 class="text-[clamp(1.5rem,3vw,2.2rem)] font-bold mb-6 text-center text-shadow">
+              <span class="bg-gradient-to-r from-primary to-secondary text-gradient">SCUM-XX服务器搜索工具</span> 
+            </h2>
+            <h3 class="text-[clamp(0.65rem,1.4vw,0.9rem)] font-bold mb-6 text-center text-shadow">
+              <span class="bg-gradient-to-r from-primary to-secondary text-gradient"></span>使用说明：输入服号或者关键词搜索，如果想搜索前十名的服务器，不输入内容点击搜索即可。本工具QQ群：685098660
+            </h3>    
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="flex-grow">
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-primary">
+                    <i class="fa fa-search text-xl"></i>
+                  </span>
+                  <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="block w-full pl-12 pr-4 py-4 bg-dark/60 border border-primary/30 rounded-xl shadow-input focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all duration-300 text-lg placeholder-light-gray/70"
+                    placeholder="输入服务器名称、IP或关键词..."
+                  >
+                </div>
+              </div>
+              <div class="flex-shrink-0 self-end md:self-center">
+                <button 
+                  id="searchButton" 
+                  class="bg-gradient-to-r from-primary to-secondary text-white font-medium py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-glow flex items-center gap-2 relative overflow-hidden"
+                >
+                  <i class="fa fa-search-plus"></i>
+                  <span>搜索服务器</span>
+                  <span class="absolute inset-0 bg-white/10 transform -translate-x-full skew-x-12 pulse"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 结果展示区 -->
+        <section id="resultSection" class="opacity-0 transition-all duration-500 flex-grow">
+          <div class="bg-dark-gray/50 backdrop-blur-lg rounded-2xl border border-primary/20 shadow-card p-6 md:p-8 transition-all duration-300 hover:shadow-card-hover h-full">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                  <i class="fa fa-server text-white"></i>
+                </div>
+                <span id="resultTitle">搜索结果</span>
+              </h2>
+              <div class="text-sm text-light-gray flex items-center gap-2">
+                <i class="fa fa-refresh"></i>
+                <span id="lastUpdated">最后更新: 刚刚</span>
+              </div>
+            </div>
+            
+            <div id="resultContainer" class="prose max-w-none text-white h-full flex flex-col">
+              <div class="text-center py-12 flex-grow flex flex-col justify-center">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                  <i class="fa fa-search text-primary text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-medium text-light-gray mb-3">准备开始搜索</h3>
+                <p class="text-light-gray/70">输入关键词并点击搜索按钮，查找全球服务器</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- 悬浮帮助按钮 -->
+      <div class="fixed bottom-8 right-8 z-50">
+        <button class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary text-white shadow-glow flex items-center justify-center hover:scale-110 transition-all duration-300 relative overflow-hidden">
+          <i class="fa fa-question-circle text-2xl"></i>
+          <span class="absolute inset-0 bg-white/10 transform -translate-x-full skew-x-12 pulse"></span>
+        </button>
+      </div>
+
+      <script>
+        // 国家/地区代码映射表（遵循一个中国原则）
+        const countryCodeMap = {
+          "HK": "中国香港",
+          "US": "美国",
+          "CN": "中国",
+          "JP": "日本",
+          "TW": "中国台湾",
+          "GB": "英国",
+          "DE": "德国",
+          "FR": "法国",
+          "ES": "西班牙",
+          "IT": "意大利",  // 修正了原代码中的错误代码 "IF"
+          "RU": "俄罗斯",
+          "SG": "新加坡",
+          "AE": "阿联酋",
+          "PL": "波兰",
+          "AT": "奥地利",
+          "CH": "瑞士",
+          "CA": "加拿大",
+          "NZ": "新西兰",
+          "MY": "马来西亚",
+          "PH": "菲律宾",
+          "EU": "欧洲",
+          "AU": "澳大利亚",
+          "CL": "智利",
+          "BR": "巴西",
+          "FI": "芬兰",
+          "ZA": "南非",
+          "online": "在线",
+          "offline": "离线",
+          "dead": "死服",
+          "removed": "服务器被删除"
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+          const searchInput = document.getElementById('searchInput');
+          const searchButton = document.getElementById('searchButton');
+          const resultSection = document.getElementById('resultSection');
+          const resultContainer = document.getElementById('resultContainer');
+          const resultTitle = document.getElementById('resultTitle');
+          const lastUpdated = document.getElementById('lastUpdated');
+          const proxyUrl = 'https://api.allorigins.win/raw?url=';
+          const apiUrl = 'http://103.97.179.43/?search=';
+
+          // 格式化日期时间
+          const formatDateTime = (date) => {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+          };
+
+          // 更新最后更新时间
+          const updateLastUpdated = () => {
+            lastUpdated.textContent = `最后更新: ${formatDateTime(new Date())}`;
+          };
+
+          // 搜索功能
+          const performSearch = async () => {
+            const query = searchInput.value.trim();
+            resultTitle.textContent = query ? `搜索结果: "${query}"` : '全部服务器';
+            
+            // 显示加载状态
+            resultContainer.innerHTML = `
+              <div class="space-y-6 p-4">
+                ${Array(5).fill().map((_, i) => `
+                  <div class="server-row bg-dark/60 rounded-xl p-6 border border-primary/10 shimmer">
+                    <div class="flex justify-between items-center mb-4">
+                      <div class="flex items-center">
+                        <div class="w-14 h-14 rounded-lg bg-dark-gray/50 border border-primary/20 mr-4"></div>
+                        <div>
+                          <div class="h-7 w-60 bg-dark-gray/50 rounded mb-3"></div>
+                          <div class="h-6 w-80 bg-dark-gray/50 rounded"></div>
+                        </div>
+                      </div>
+                      <div class="w-24 h-9 bg-dark-gray/50 rounded"></div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                      <div class="h-7 w-full bg-dark-gray/50 rounded"></div>
+                      <div class="h-7 w-full bg-dark-gray/50 rounded"></div>
+                      <div class="h-7 w-full bg-dark-gray/50 rounded"></div>
+                      <div class="h-7 w-full bg-dark-gray/50 rounded"></div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-primary/10 flex justify-between items-center">
+                      <div class="h-6 w-28 bg-dark-gray/50 rounded"></div>
+                      <div class="flex space-x-4">
+                        <div class="w-10 h-10 bg-dark-gray/50 rounded"></div>
+                        <div class="w-10 h-10 bg-dark-gray/50 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+            
+            resultSection.classList.remove('opacity-0');
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            try {
+              // 使用代理服务器发送请求
+              const response = await fetch(proxyUrl + encodeURIComponent(apiUrl + query));
+              
+              if (!response.ok) {
+                throw new Error(`HTTP错误，状态码: ${response.status}`);
+              }
+
+              // 获取文本内容
+              const result = await response.text();
+              
+              // 更新最后更新时间
+              updateLastUpdated();
+              
+              // 解析结果并显示在表格中
+              displayResults(result);
+            } catch (error) {
+              console.error('搜索出错:', error);
+              resultContainer.innerHTML = `
+                <div class="bg-dark/60 border-l-4 border-danger p-6 rounded-xl">
+                  <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-full bg-danger/10 flex items-center justify-center flex-shrink-0">
+                      <i class="fa fa-exclamation-triangle text-danger text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-medium text-xl text-light-gray mb-1">搜索失败</h3>
+                      <p class="text-light-gray/70 text-base">${error.message}</p>
+                      <p class="text-light-gray/70 text-base mt-1">请检查API服务器是否可用或稍后重试</p>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+          };
+
+          // 解析结果并显示在表格中
+          const displayResults = (resultText) => {
+            if (!resultText) {
+              resultContainer.innerHTML = `
+                <div class="text-center py-12 flex-grow flex flex-col justify-center">
+                  <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-dark-gray/50 border border-primary/20 mb-6">
+                    <i class="fa fa-search-minus text-light-gray/50 text-4xl"></i>
+                  </div>
+                  <h3 class="text-xl font-medium text-light-gray mb-3">没有找到结果</h3>
+                  <p class="text-light-gray/70">尝试使用不同的关键词或检查拼写</p>
+                </div>
+              `;
+              return;
+            }
+
+            try {
+              // 解析JSON数据
+              const jsonData = JSON.parse(resultText);
+              
+              // 检查是否有data数组
+              if (!jsonData.data || !Array.isArray(jsonData.data)) {
+                throw new Error('JSON数据中缺少data数组');
+              }
+              
+              // 转换服务器数据
+              const servers = jsonData.data.map((item, index) => {
+                const attributes = item.attributes || {};
+                const details = attributes.details || {};
+                
+                return {
+                  rank: attributes.rank !== undefined ? attributes.rank : index + 1,
+                  name: attributes.name || '未命名',
+                  ip: attributes.ip || '',
+                  id: item.id || '',
+                  port: attributes.port || '',
+                  players: attributes.players !== undefined ? attributes.players : '0',
+                  slots: attributes.maxPlayers !== undefined ? attributes.maxPlayers : '0',
+                  time: details.time || '',
+                  country: attributes.country || '',
+                  status: attributes.status || '未知',
+                  version: details.version || '未知'
+                };
+              });
+
+              // 构建服务器行
+              const serverRows = buildServerRows(servers);
+              resultContainer.innerHTML = serverRows;
+              
+              // 添加服务器行动画效果
+              setTimeout(() => {
+                document.querySelectorAll('.server-row').forEach((row, index) => {
+                  setTimeout(() => {
+                    row.classList.remove('opacity-0');
+                    row.classList.remove('translate-y-4');
+                  }, 100 * index);
+                });
+              }, 100);
+              
+            } catch (parseError) {
+              console.error('解析结果出错:', parseError);
+              resultContainer.innerHTML = `
+                <div class="bg-dark/60 border-l-4 border-warning p-6 rounded-xl">
+                  <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+                      <i class="fa fa-code text-warning text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-medium text-xl text-light-gray mb-1">结果解析失败</h3>
+                      <p class="text-light-gray/70 text-base">服务器返回了无法解析的格式</p>
+                      <pre class="text-xs mt-3 p-3 bg-dark-gray/50 rounded overflow-x-auto">${resultText.substring(0, 500)}${resultText.length > 500 ? '...' : ''}</pre>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+          };
+
+          // 构建服务器行
+          const buildServerRows = (servers) => {
+            return `
+              <div class="space-y-6">
+                ${servers.map((server, index) => `
+                  <div class="server-row opacity-0 translate-y-4 bg-dark/60 rounded-xl shadow-sm border border-primary/10 overflow-hidden transition-all duration-300">
+                    <div class="p-6">
+                      <div class="flex flex-col md:flex-row md:items-center justify-between mb-5">
+                        <div class="flex items-center mb-4 md:mb-0">
+                          <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 flex items-center justify-center mr-5">
+                            <i class="fa fa-server text-primary text-2xl"></i>
+                          </div>
+                          <div>
+                            <h3 class="font-semibold text-xl text-white hover:text-primary transition-colors duration-300">${server.name}</h3>
+                            <p class="text-base text-light-gray mt-2">
+                              <i class="fa fa-globe text-primary mr-2"></i>
+                              ${server.ip ? `${server.ip}:${server.port}` : '未提供IP'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                          <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full ${server.status === 'online' ? 'bg-success' : 'bg-danger'} mr-2"></div>
+                            <span class="text-base font-medium ${server.status === 'online' ? 'text-success' : 'text-danger'}">
+                              ${countryCodeMap[server.status.toLowerCase()] || server.status || '未知'}
+                            </span>
+                          </div>
+                          
+                          <div class="flex items-center">
+                            <i class="fa fa-user text-primary mr-2"></i>
+                            <span class="text-base">${server.players || '0'}/${server.slots || '0'}</span>
+                          </div>
+                          
+                          <div class="flex items-center">
+                            <i class="fa fa-flag text-primary mr-2"></i>
+                            <span class="text-base">${countryCodeMap[server.country] || server.country || '-'}</span>
+                          </div>
+                          
+                          <button class="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-lg transition-all duration-300 text-base flex items-center justify-center border border-primary/30">
+                            <i class="fa fa-copy mr-2"></i> 复制IP
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div class="mt-6 pt-6 border-t border-primary/10 flex justify-between items-center">
+                        <div class="text-base text-light-gray">
+                          <i class="fa fa-trophy text-warning mr-2"></i>
+                          排名 #${server.rank || index + 1}
+                        </div>
+                        <div class="flex space-x-4">
+                          <button class="bg-dark-gray/50 hover:bg-dark-gray/70 w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300 border border-primary/20">
+                            <i class="fa fa-star-o text-light-gray"></i>
+                          </button>
+                          <button class="bg-dark-gray/50 hover:bg-dark-gray/70 w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300 border border-primary/20">
+                            <i class="fa fa-info text-light-gray"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          };
+
+          // 绑定搜索按钮点击事件
+          searchButton.addEventListener('click', performSearch);
+
+          // 绑定回车键事件
+          searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+              performSearch();
+            }
+          });
+
+          // 添加按钮动画效果
+          searchButton.addEventListener('mouseenter', () => {
+            searchButton.classList.add('shadow-glow');
+            searchButton.classList.add('scale-105');
+          });
+
+          searchButton.addEventListener('mouseleave', () => {
+            searchButton.classList.remove('shadow-glow');
+            searchButton.classList.remove('scale-105');
+          });
+
+          // 为复制IP按钮添加功能
+          document.addEventListener('click', (event) => {
+            if (event.target.closest('button') && event.target.closest('button').textContent.includes('复制IP')) {
+              const row = event.target.closest('.server-row');
+              const ipElement = row.querySelector('.text-light-gray');
+              const ipText = ipElement.textContent.trim().replace('🌍 ', '');
+              
+              navigator.clipboard.writeText(ipText).then(() => {
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fa fa-check mr-2"></i> 已复制';
+                button.classList.add('bg-success/20');
+                button.classList.add('text-success');
+                button.classList.remove('bg-primary/20');
+                button.classList.remove('text-primary');
+                
+                setTimeout(() => {
+                  button.innerHTML = originalHTML;
+                  button.classList.remove('bg-success/20');
+                  button.classList.remove('text-success');
+                  button.classList.add('bg-primary/20');
+                  button.classList.add('text-primary');
+                }, 2000);
+              });
+            }
+          });
+        });
+      </script>
+    </body>
+    </html>
+  
