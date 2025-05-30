@@ -6,6 +6,8 @@
       <title>服务器搜索</title>
       <script src="https://cdn.tailwindcss.com"></script>
       <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+      <!-- 引入 html2canvas 库 -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
       <script>
         tailwind.config = {
           theme: {
@@ -135,7 +137,7 @@
 
         <!-- 结果展示区 -->
         <section id="resultSection" class="opacity-0 transition-all duration-500 flex-grow">
-          <div class="bg-dark-gray/50 backdrop-blur-lg rounded-2xl border border-primary/20 shadow-card p-6 md:p-8 transition-all duration-300 hover:shadow-card-hover h-full">
+          <div class="bg-dark-gray/50 backdrop-blur-lg rounded-2xl border border-primary/20 shadow-card p-6 md:p-8 transition-all duration-300 hover:shadow-card-hover h-full mx-[-20rem]">
             <div class="flex items-center justify-between mb-6">
               <h2 class="text-xl font-bold flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
@@ -164,8 +166,18 @@
 
       <!-- 悬浮帮助按钮 -->
       <div class="fixed bottom-8 right-8 z-50">
-        <button class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary text-white shadow-glow flex items-center justify-center hover:scale-110 transition-all duration-300 relative overflow-hidden">
-          <i class="fa fa-question-circle text-2xl"></i>
+        <a href="https://qm.qq.com/q/baSEMIbeQE" target="_blank">
+          <button class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary text-white shadow-glow flex items-center justify-center hover:scale-110 transition-all duration-300 relative overflow-hidden">
+            <i class="fa fa-qq text-2xl"></i>
+            <span class="absolute inset-0 bg-white/10 transform -translate-x-full skew-x-12 pulse"></span>
+          </button>
+        </a>
+      </div>
+
+      <!-- 截图按钮 -->
+      <div class="fixed bottom-8 left-8 z-50">
+        <button id="screenshotButton" class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary text-white shadow-glow flex items-center justify-center hover:scale-110 transition-all duration-300 relative overflow-hidden">
+          <i class="fa fa-camera text-2xl"></i>
           <span class="absolute inset-0 bg-white/10 transform -translate-x-full skew-x-12 pulse"></span>
         </button>
       </div>
@@ -214,6 +226,7 @@
           const lastUpdated = document.getElementById('lastUpdated');
           const proxyUrl = 'https://api.allorigins.win/raw?url=';
           const apiUrl = 'http://103.97.179.43/?search=';
+          const screenshotButton = document.getElementById('screenshotButton');
 
           // 格式化日期时间
           const formatDateTime = (date) => {
@@ -225,47 +238,30 @@
             lastUpdated.textContent = `最后更新: ${formatDateTime(new Date())}`;
           };
 
+          // 显示加载提示
+          const showLoading = () => {
+            resultContainer.innerHTML = `
+              <div class="text-center py-12 flex-grow flex flex-col justify-center">
+                <div class="flex items-center justify-center space-x-4">
+                  <div class="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <i class="fa fa-spinner fa-spin text-primary text-2xl"></i>
+                  </div>
+                  <h3 class="text-xl font-medium text-light-gray">坚持住！马上就射了！！！</h3>
+                </div>
+              </div>
+            `;
+            resultSection.classList.remove('opacity-0');
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          };
+
           // 搜索功能
           const performSearch = async () => {
             const query = searchInput.value.trim();
-            resultTitle.textContent = query ? `搜索结果: "${query}"` : '全部服务器';
-            
-            // 显示加载状态
-            resultContainer.innerHTML = `
-              <div class="space-y-6 p-4">
-                ${Array(5).fill().map((_, i) => `
-                  <div class="server-row bg-dark/60 rounded-xl p-6 border border-primary/10 shimmer">
-                    <div class="flex justify-between items-center mb-4">
-                      <div class="flex items-center">
-                        <div class="w-14 h-14 rounded-lg bg-dark-gray/50 border border-primary/20 mr-4"></div>
-                        <div>
-                          <div class="h-7 w-60 bg-dark-gray/50 rounded mb-3"></div>
-                          <div class="h-6 w-80 bg-dark-gray/50 rounded"></div>
-                        </div>
-                      </div>
-                      <div class="w-24 h-9 bg-dark-gray/50 rounded"></div>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                      <div class="h-7 w-full bg-dark-gray/50 rounded"></div>
-                      <div class="h-7 w-full bg-dark-gray/50 rounded"></div>
-                      <div class="h-7 w-full bg-dark-gray/50 rounded"></div>
-                      <div class="h-7 w-full bg-dark-gray/50 rounded"></div>
-                    </div>
-                    <div class="mt-8 pt-6 border-t border-primary/10 flex justify-between items-center">
-                      <div class="h-6 w-28 bg-dark-gray/50 rounded"></div>
-                      <div class="flex space-x-4">
-                        <div class="w-10 h-10 bg-dark-gray/50 rounded"></div>
-                        <div class="w-10 h-10 bg-dark-gray/50 rounded"></div>
-                      </div>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            `;
-            
-            resultSection.classList.remove('opacity-0');
-            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
+            resultTitle.textContent = query ? `搜索结果: "${query}"` : '搜索到的服务器如下';
+
+            // 显示加载提示
+            showLoading();
+
             try {
               // 使用代理服务器发送请求
               const response = await fetch(proxyUrl + encodeURIComponent(apiUrl + query));
@@ -293,7 +289,7 @@
                     <div>
                       <h3 class="font-medium text-xl text-light-gray mb-1">搜索失败</h3>
                       <p class="text-light-gray/70 text-base">${error.message}</p>
-                      <p class="text-light-gray/70 text-base mt-1">请检查API服务器是否可用或稍后重试</p>
+                      <p class="text-light-gray/70 text-base mt-1">请“稍后重试”或“立刻再搜索一次”</p>
                     </div>
                   </div>
                 </div>
@@ -426,15 +422,9 @@
                       <div class="mt-6 pt-6 border-t border-primary/10 flex justify-between items-center">
                         <div class="text-base text-light-gray">
                           <i class="fa fa-trophy text-warning mr-2"></i>
-                          排名 #${server.rank || index + 1}
+                          服务器排名： 第${server.rank || index + 1}个
                         </div>
                         <div class="flex space-x-4">
-                          <button class="bg-dark-gray/50 hover:bg-dark-gray/70 w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300 border border-primary/20">
-                            <i class="fa fa-star-o text-light-gray"></i>
-                          </button>
-                          <button class="bg-dark-gray/50 hover:bg-dark-gray/70 w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300 border border-primary/20">
-                            <i class="fa fa-info text-light-gray"></i>
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -491,8 +481,21 @@
               });
             }
           });
+
+          // 截图功能
+          screenshotButton.addEventListener('click', async () => {
+            try {
+              const canvas = await html2canvas(document.body);
+              const dataURL = canvas.toDataURL('image/png');
+              const a = document.createElement('a');
+              a.href = dataURL;
+              a.download = 'screenshot.png';
+              a.click();
+            } catch (error) {
+              console.error('截图出错:', error);
+            }
+          });
         });
       </script>
     </body>
     </html>
-  
